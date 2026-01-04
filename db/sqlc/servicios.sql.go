@@ -60,6 +60,27 @@ func (q *Queries) DeactivateServicio(ctx context.Context, arg DeactivateServicio
 	return err
 }
 
+const getServicioByID = `-- name: GetServicioByID :one
+SELECT id, barberia_id, nombre, duracion_minutos, precio, activo
+FROM servicios
+WHERE id = $1
+  AND activo = true
+`
+
+func (q *Queries) GetServicioByID(ctx context.Context, id int32) (Servicio, error) {
+	row := q.db.QueryRowContext(ctx, getServicioByID, id)
+	var i Servicio
+	err := row.Scan(
+		&i.ID,
+		&i.BarberiaID,
+		&i.Nombre,
+		&i.DuracionMinutos,
+		&i.Precio,
+		&i.Activo,
+	)
+	return i, err
+}
+
 const listServicios = `-- name: ListServicios :many
 SELECT id, barberia_id, nombre, duracion_minutos, precio, activo
 FROM servicios

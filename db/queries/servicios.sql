@@ -24,3 +24,9 @@ FROM servicios
 WHERE barberia_id = $1
   AND activo = true
 ORDER BY nombre;
+
+-- name: GetServicioByID :one
+SELECT *
+FROM servicios
+WHERE id = $1
+  AND activo = true;
