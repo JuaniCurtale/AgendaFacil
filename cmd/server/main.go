@@ -60,11 +60,15 @@ func main() {
 	// Inicializar queries y handlers
 	queries := db.New(dbConn)
 	barberiaHandler := handlers.NewBarberiaHandler(queries)
+	serviciosHandler := handlers.NewServiciosHandler(queries)
+	barberosHandler := handlers.NewBarberosHandler(queries)
 
 	// Router
 	r := chi.NewRouter()
 	r.Get("/b/{slug}", barberiaHandler.GetBarberiaPublic)
 	r.Get("/b/{slug}/agenda", barberiaHandler.GetAgendaPublic)
+	r.Get("/b/{slug}/servicios", serviciosHandler.ListServiciosActivos)
+	r.Get("/b/{slug}/barberos", barberosHandler.ListBarberos)
 
 	r.Get("/", func(w http.ResponseWriter, r *http.Request) {
 		w.Write([]byte("API OK"))
