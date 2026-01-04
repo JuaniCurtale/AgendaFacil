@@ -12,7 +12,7 @@ RUN go mod download
 COPY . .
 
 # Compilar la aplicación
-RUN go build -o app ./cmd
+RUN go build -o app ./cmd/server
 
 # Imagen final
 FROM debian:bookworm-slim

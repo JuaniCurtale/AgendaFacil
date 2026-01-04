@@ -5,29 +5,49 @@
 package db
 
 import (
+	"database/sql"
 	"time"
 )
 
-type Barbero struct {
-	IDBarbero    int32  `json:"id_barbero"`
-	Nombre       string `json:"nombre"`
-	Apellido     string `json:"apellido"`
-	Especialidad string `json:"especialidad"`
+type Barberia struct {
+	ID           int32        `json:"id"`
+	Nombre       string       `json:"nombre"`
+	Slug         string       `json:"slug"`
+	HoraApertura time.Time    `json:"hora_apertura"`
+	HoraCierre   time.Time    `json:"hora_cierre"`
+	Activa       sql.NullBool `json:"activa"`
 }
 
-type Cliente struct {
-	IDCliente int32  `json:"id_cliente"`
-	Nombre    string `json:"nombre"`
-	Apellido  string `json:"apellido"`
-	Telefono  string `json:"telefono"`
-	Email     string `json:"email"`
+type Servicio struct {
+	ID              int32        `json:"id"`
+	BarberiaID      int32        `json:"barberia_id"`
+	Nombre          string       `json:"nombre"`
+	DuracionMinutos int32        `json:"duracion_minutos"`
+	Precio          string       `json:"precio"`
+	Activo          sql.NullBool `json:"activo"`
 }
 
 type Turno struct {
-	IDTurno       int32     `json:"id_turno"`
-	IDCliente     int32     `json:"id_cliente"`
-	IDBarbero     int32     `json:"id_barbero"`
-	Fechahora     time.Time `json:"fechahora"`
-	Servicio      string    `json:"servicio"`
-	Observaciones string    `json:"observaciones"`
+	ID              int32          `json:"id"`
+	BarberiaID      int32          `json:"barberia_id"`
+	BarberoID       int32          `json:"barbero_id"`
+	ServicioID      int32          `json:"servicio_id"`
+	Fecha           time.Time      `json:"fecha"`
+	HoraInicio      time.Time      `json:"hora_inicio"`
+	HoraFin         time.Time      `json:"hora_fin"`
+	ClienteNombre   string         `json:"cliente_nombre"`
+	ClienteTelefono sql.NullString `json:"cliente_telefono"`
+	Estado          sql.NullString `json:"estado"`
+	CreadoEn        sql.NullTime   `json:"creado_en"`
+}
+
+type Usuario struct {
+	ID           int32        `json:"id"`
+	BarberiaID   int32        `json:"barberia_id"`
+	Nombre       string       `json:"nombre"`
+	Apellido     string       `json:"apellido"`
+	Email        string       `json:"email"`
+	PasswordHash string       `json:"password_hash"`
+	Rol          string       `json:"rol"`
+	Activo       sql.NullBool `json:"activo"`
 }
