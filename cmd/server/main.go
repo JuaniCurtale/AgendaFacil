@@ -61,6 +61,8 @@ func main() {
 
 	// Inicializar queries y handlers
 	queries := db.New(dbConn)
+
+	authHandler := handlers.NewAuthHandler(queries)
 	barberiaHandler := handlers.NewBarberiaHandler(queries)
 	serviciosHandler := handlers.NewServiciosHandler(queries)
 	barberosHandler := handlers.NewBarberosHandler(queries)
@@ -69,6 +71,7 @@ func main() {
 	r := chi.NewRouter()
 
 	// --- RUTAS API ---
+	r.Post("/login", authHandler.Login) // <--- NUEVA RUTA
 	r.Get("/b/{slug}", barberiaHandler.GetBarberiaPublic)
 	r.Get("/b/{slug}/agenda", barberiaHandler.GetAgendaPublic)
 	r.Get("/b/{slug}/servicios", serviciosHandler.ListServiciosActivos)

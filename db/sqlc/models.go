@@ -46,6 +46,7 @@ type Usuario struct {
 	BarberiaID   int32        `json:"barberia_id"`
 	Nombre       string       `json:"nombre"`
 	Apellido     string       `json:"apellido"`
+	Username     string       `json:"username"`
 	Email        string       `json:"email"`
 	PasswordHash string       `json:"password_hash"`
 	Rol          string       `json:"rol"`

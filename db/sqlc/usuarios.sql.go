@@ -14,7 +14,7 @@ INSERT INTO usuarios (
   barberia_id, nombre, apellido, email, password_hash, rol
 )
 VALUES ($1, $2, $3, $4, $5, $6)
-RETURNING id, barberia_id, nombre, apellido, email, password_hash, rol, activo
+RETURNING id, barberia_id, nombre, apellido, username, email, password_hash, rol, activo
 `
 
 type CreateUsuarioParams struct {
@@ -41,6 +41,7 @@ func (q *Queries) CreateUsuario(ctx context.Context, arg CreateUsuarioParams) (U
 		&i.BarberiaID,
 		&i.Nombre,
 		&i.Apellido,
+		&i.Username,
 		&i.Email,
 		&i.PasswordHash,
 		&i.Rol,
@@ -50,7 +51,7 @@ func (q *Queries) CreateUsuario(ctx context.Context, arg CreateUsuarioParams) (U
 }
 
 const getUsuarioByEmail = `-- name: GetUsuarioByEmail :one
-SELECT id, barberia_id, nombre, apellido, email, password_hash, rol, activo
+SELECT id, barberia_id, nombre, apellido, username, email, password_hash, rol, activo
 FROM usuarios
 WHERE email = $1
   AND activo = true
@@ -64,6 +65,31 @@ func (q *Queries) GetUsuarioByEmail(ctx context.Context, email string) (Usuario,
 		&i.BarberiaID,
 		&i.Nombre,
 		&i.Apellido,
+		&i.Username,
+		&i.Email,
+		&i.PasswordHash,
+		&i.Rol,
+		&i.Activo,
+	)
+	return i, err
+}
+
+const getUsuarioByUsername = `-- name: GetUsuarioByUsername :one
+SELECT id, barberia_id, nombre, apellido, username, email, password_hash, rol, activo
+FROM usuarios
+WHERE username = $1
+  AND activo = true
+`
+
+func (q *Queries) GetUsuarioByUsername(ctx context.Context, username string) (Usuario, error) {
+	row := q.db.QueryRowContext(ctx, getUsuarioByUsername, username)
+	var i Usuario
+	err := row.Scan(
+		&i.ID,
+		&i.BarberiaID,
+		&i.Nombre,
+		&i.Apellido,
+		&i.Username,
 		&i.Email,
 		&i.PasswordHash,
 		&i.Rol,

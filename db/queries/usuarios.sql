@@ -18,3 +18,9 @@ WHERE barberia_id = $1
   AND rol = 'barbero'
   AND activo = true
 ORDER BY nombre;
+
+-- name: GetUsuarioByUsername :one
+SELECT *
+FROM usuarios
+WHERE username = $1
+  AND activo = true;

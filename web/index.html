@@ -48,7 +48,6 @@
 
     <label>💈 Barbero (Opcional):</label>
     <select id="barbero" onchange="cargarHorarios()">
-      <option value="0">Cualquiera</option>
     </select>
   </div>
 
@@ -99,8 +98,7 @@
       const resBarb = await fetch(`${API_URL}/b/${slug}/barberos`);
       const barberos = await resBarb.json();
       const selectBarb = document.getElementById("barbero");
-      selectBarb.innerHTML = '<option value="0">Cualquiera</option>' + 
-        barberos.map(b => `<option value="${b.id}">${b.nombre}</option>`).join('');
+      selectBarb.innerHTML = barberos.map(b => `<option value="${b.id}">${b.nombre}</option>`).join('');
 
       // Cargar horarios automáticamente
       cargarHorarios();

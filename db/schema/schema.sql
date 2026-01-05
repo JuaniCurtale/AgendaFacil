@@ -13,6 +13,7 @@ CREATE TABLE usuarios (
     barberia_id INT NOT NULL,
     nombre VARCHAR(50) NOT NULL,
     apellido VARCHAR(50) NOT NULL,
+    username VARCHAR(50) UNIQUE NOT NULL,
     email VARCHAR(100) UNIQUE NOT NULL,
     password_hash TEXT NOT NULL,
     rol VARCHAR(20) NOT NULL, -- admin | barbero
@@ -62,8 +63,8 @@ VALUES (1, 'Corte de Cabello', 30, 15.00),
        (1, 'Afeitado', 20, 10.00),
        (1, 'Corte y Afeitado', 45, 22.00);
 
-INSERT INTO usuarios (barberia_id, nombre, apellido, email, password_hash, rol)
-VALUES (1, 'Juan', 'Pérez', 'juan@correo.com', 'hashdemo', 'barbero');
+INSERT INTO usuarios (barberia_id, username, nombre, apellido, email, password_hash, rol)
+VALUES (1, 'admin_juan', 'Juan', 'Pérez', 'juan@correo.com', '$2a$12$MC9cqg7Om6vGwYDBHe6Qsuu.HRaKeH915xHISHFhTo9R80RImnlum', 'barbero');
 
 INSERT INTO turnos (
   barberia_id,
