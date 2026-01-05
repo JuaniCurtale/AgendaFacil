@@ -54,7 +54,7 @@ async function getTurnos() {
   const slug = document.getElementById("slug").value;
   const fecha = document.getElementById("fecha").value;
   const res = await fetch(
-    `${API}/b/${slug}/turnos-ocupados?fecha=${fecha}`
+    `${API}/b/${slug}/disponibilidad?fecha=${fecha}`
   );
   show(await res.json());
 }

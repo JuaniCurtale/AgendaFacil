@@ -96,8 +96,10 @@ SELECT EXISTS (
     AND fecha = $3
     AND estado != 'cancelado'
     AND (
-      hora_inicio < $5
-      AND hora_fin > $4
+      -- Lógica correcta de intersección:
+      -- (Inicio_Existente < Fin_Nuevo) Y (Fin_Existente > Inicio_Nuevo)
+      hora_inicio < $4 
+      AND hora_fin > $5
     )
 )
 `

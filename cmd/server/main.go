@@ -70,8 +70,7 @@ func main() {
 	r.Get("/b/{slug}/servicios", serviciosHandler.ListServiciosActivos)
 	r.Get("/b/{slug}/barberos", barberosHandler.ListBarberos)
 	r.Get("/b/{slug}/disponibilidad", barberiaHandler.GetDisponibilidad)
-	r.Get("/b/{slug}/agenda", barberiaHandler.AgendaHTML)
-
+	r.Post("/b/{slug}/reservar", barberiaHandler.PostReservar)
 	r.Get("/", func(w http.ResponseWriter, r *http.Request) {
 		w.Write([]byte("API OK"))
 	})
