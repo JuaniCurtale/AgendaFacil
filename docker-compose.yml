@@ -32,4 +32,4 @@ services:
       DB_PASSWORD: ${DB_PASSWORD}
       DB_PORT: 5432              # puerto interno de Postgres
       DB_NAME: ${DB_NAME}
-      APP_PORT: ${APP_PORT}      # puerto donde corre tu Go app
+      PORT: ${APP_PORT}      # puerto donde corre tu Go app

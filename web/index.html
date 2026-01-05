@@ -2,62 +2,212 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8" />
-  <title>Agenda Barbería</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Reserva tu Turno 🪒</title>
   <style>
-    body { font-family: sans-serif; padding: 20px; }
-    button { margin: 5px 0; }
-    pre { background: #f4f4f4; padding: 10px; }
+    /* Estilos base para que se vea limpio */
+    body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #f5f7fa; display: flex; justify-content: center; padding: 20px; }
+    .container { background: white; width: 100%; max-width: 500px; padding: 2rem; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+    h1 { text-align: center; color: #333; }
+    label { display: block; margin-top: 15px; font-weight: bold; color: #555; }
+    input, select { width: 100%; padding: 10px; margin-top: 5px; border: 1px solid #ddd; border-radius: 6px; box-sizing: border-box; }
+    button.primary { background: #007bff; color: white; border: none; padding: 12px; width: 100%; margin-top: 20px; border-radius: 6px; font-size: 16px; cursor: pointer; transition: background 0.3s; }
+    button.primary:hover { background: #0056b3; }
+    
+    /* Grid de Horarios */
+    .slots-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-top: 15px; }
+    .slot { background: #e9ecef; padding: 10px; text-align: center; border-radius: 6px; cursor: pointer; border: 1px solid #dee2e6; }
+    .slot:hover { background: #dbeaff; border-color: #b3d7ff; }
+    .slot.selected { background: #007bff; color: white; border-color: #007bff; font-weight: bold; }
+
+    /* Mensajes */
+    .hidden { display: none; }
+    .step { margin-bottom: 20px; padding-bottom: 20px; border-bottom: 1px solid #eee; }
+    #msg-error { color: #dc3545; text-align: center; margin-top: 10px; }
+    #msg-success { color: #28a745; text-align: center; margin-top: 10px; font-weight: bold; }
   </style>
 </head>
 <body>
 
-<h1>Agenda Fácil 🪒</h1>
+<div class="container">
+  <h1>💈 Agenda Fácil</h1>
+  
+  <div style="background: #fff3cd; padding: 10px; border-radius: 6px; font-size: 0.9em; margin-bottom: 15px;">
+    <label style="margin-top:0">Slug Barbería (Test):</label>
+    <input id="slug" value="test" onchange="cargarDatosIniciales()" />
+  </div>
 
-<label>Slug barbería:</label>
-<input id="slug" value="test" />
+  <div class="step">
+    <label>📅 Fecha:</label>
+    <input id="fecha" type="date" />
 
-<br><br>
+    <label>✂️ Servicio:</label>
+    <select id="servicio" onchange="cargarHorarios()">
+      <option value="">Cargando servicios...</option>
+    </select>
 
-<label>Fecha:</label>
-<input id="fecha" type="date" value="2026-01-05" />
+    <label>💈 Barbero (Opcional):</label>
+    <select id="barbero" onchange="cargarHorarios()">
+      <option value="0">Cualquiera</option>
+    </select>
+  </div>
 
-<br><br>
+  <div class="step">
+    <label>⏰ Horarios Disponibles:</label>
+    <div id="slots-container" class="slots-grid">
+      <div style="grid-column: span 4; text-align: center; color: #777;">Selecciona fecha y servicio para ver horarios</div>
+    </div>
+    <input type="hidden" id="hora-seleccionada">
+  </div>
 
-<button onclick="getServicios()">Servicios activos</button>
-<button onclick="getBarberos()">Barberos</button>
-<button onclick="getTurnos()">Turnos ocupados</button>
+  <div class="step">
+    <label>👤 Tu Nombre:</label>
+    <input id="cliente-nombre" placeholder="Ej: Juan Pérez">
+    
+    <label>📞 Teléfono:</label>
+    <input id="cliente-telefono" placeholder="Ej: 11 2233 4455">
+  </div>
 
-<h2>Respuesta</h2>
-<pre id="output"></pre>
+  <button class="primary" onclick="confirmarReserva()">Confirmar Reserva</button>
+  
+  <p id="msg-error"></p>
+  <p id="msg-success"></p>
+</div>
 
 <script>
-const API = "http://localhost:8080";
+  const API_URL = ""; // Ajusta si usas otro puerto
 
-function show(data) {
-  document.getElementById("output").textContent =
-    JSON.stringify(data, null, 2);
-}
+  // Al cargar la página, inicializamos la fecha de hoy y cargamos datos
+  window.onload = () => {
+    document.getElementById("fecha").valueAsDate = new Date();
+    cargarDatosIniciales();
+  };
 
-async function getServicios() {
-  const slug = document.getElementById("slug").value;
-  const res = await fetch(`${API}/b/${slug}/servicios`);
-  show(await res.json());
-}
+  // 1. Cargar Servicios y Barberos al iniciar
+  async function cargarDatosIniciales() {
+    const slug = document.getElementById("slug").value;
+    try {
+      // Cargar Servicios
+      const resServ = await fetch(`${API_URL}/b/${slug}/servicios`);
+      const servicios = await resServ.json();
+      const selectServ = document.getElementById("servicio");
+      selectServ.innerHTML = servicios.map(s => 
+        `<option value="${s.id}">${s.nombre} ($${s.precio})</option>`
+      ).join('');
 
-async function getBarberos() {
-  const slug = document.getElementById("slug").value;
-  const res = await fetch(`${API}/b/${slug}/barberos`);
-  show(await res.json());
-}
+      // Cargar Barberos
+      const resBarb = await fetch(`${API_URL}/b/${slug}/barberos`);
+      const barberos = await resBarb.json();
+      const selectBarb = document.getElementById("barbero");
+      selectBarb.innerHTML = '<option value="0">Cualquiera</option>' + 
+        barberos.map(b => `<option value="${b.id}">${b.nombre}</option>`).join('');
 
-async function getTurnos() {
-  const slug = document.getElementById("slug").value;
-  const fecha = document.getElementById("fecha").value;
-  const res = await fetch(
-    `${API}/b/${slug}/disponibilidad?fecha=${fecha}`
-  );
-  show(await res.json());
-}
+      // Cargar horarios automáticamente
+      cargarHorarios();
+    } catch (e) {
+      console.error("Error cargando datos:", e);
+      document.getElementById("msg-error").innerText = "Error cargando la barbería. Verifica el slug.";
+    }
+  }
+
+  // 2. Consultar Disponibilidad
+  async function cargarHorarios() {
+    const slug = document.getElementById("slug").value;
+    const fecha = document.getElementById("fecha").value;
+    const servicioId = document.getElementById("servicio").value;
+    const barberoId = document.getElementById("barbero").value;
+
+    if (!servicioId || !fecha) return;
+
+    // Limpiar selección previa
+    document.getElementById("hora-seleccionada").value = "";
+    const container = document.getElementById("slots-container");
+    container.innerHTML = "Cargando...";
+
+    try {
+      // Llamada al backend
+      let url = `${API_URL}/b/${slug}/disponibilidad?fecha=${fecha}&servicio_id=${servicioId}`;
+      if (barberoId != 0) url += `&barbero_id=${barberoId}`; // Ojo: tu backend debe soportar este filtro si lo agregaste
+
+      const res = await fetch(url);
+      const slots = await res.json();
+
+      container.innerHTML = "";
+      if (slots.length === 0) {
+        container.innerHTML = "<div style='grid-column: span 4; text-align: center'>No hay turnos disponibles 😔</div>";
+        return;
+      }
+
+      // Renderizar Slots
+      slots.forEach(slot => {
+        const div = document.createElement("div");
+        div.className = "slot";
+        div.innerText = slot.inicio;
+        div.onclick = () => seleccionarHora(div, slot.inicio);
+        container.appendChild(div);
+      });
+
+    } catch (e) {
+      container.innerHTML = "Error cargando horarios";
+    }
+  }
+
+  // UI: Marcar hora como seleccionada
+  function seleccionarHora(elemento, hora) {
+    document.querySelectorAll(".slot").forEach(el => el.classList.remove("selected"));
+    elemento.classList.add("selected");
+    document.getElementById("hora-seleccionada").value = hora;
+  }
+
+  // 3. Enviar Reserva (POST)
+  async function confirmarReserva() {
+    // Limpiar mensajes
+    document.getElementById("msg-error").innerText = "";
+    document.getElementById("msg-success").innerText = "";
+
+    const slug = document.getElementById("slug").value;
+    const data = {
+      servicio_id: parseInt(document.getElementById("servicio").value),
+      barbero_id: parseInt(document.getElementById("barbero").value), // Si es 0, el backend debe manejarlo o asignar uno default
+      fecha: document.getElementById("fecha").value,
+      hora_inicio: document.getElementById("hora-seleccionada").value,
+      cliente_nombre: document.getElementById("cliente-nombre").value,
+      cliente_telefono: document.getElementById("cliente-telefono").value
+    };
+
+    // Validaciones simples
+    if (!data.hora_inicio) return mostrarError("¡Debes seleccionar un horario!");
+    if (!data.cliente_nombre) return mostrarError("¡Ingresa tu nombre!");
+
+    try {
+      const res = await fetch(`${API_URL}/b/${slug}/reservar`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(data)
+      });
+
+      if (res.ok) {
+        document.getElementById("msg-success").innerText = "✅ ¡Reserva confirmada con éxito!";
+        // Recargar horarios para mostrar que se ocupó el lugar
+        cargarHorarios();
+        // Limpiar formulario
+        document.getElementById("cliente-nombre").value = "";
+        document.getElementById("hora-seleccionada").value = "";
+      } else {
+        const errorText = await res.text();
+        mostrarError("❌ Error: " + errorText);
+      }
+    } catch (e) {
+      mostrarError("Error de conexión");
+    }
+  }
+
+  function mostrarError(msg) {
+    document.getElementById("msg-error").innerText = msg;
+  }
+
+  // Escuchar cambio de fecha manual también
+  document.getElementById("fecha").addEventListener("change", cargarHorarios);
 </script>
 
 </body>

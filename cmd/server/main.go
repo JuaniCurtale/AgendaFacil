@@ -6,6 +6,8 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"path/filepath" // Agregado para rutas de archivos
+	"strings"       // Agregado para manipulación de rutas
 
 	db "agendaFacil/db/sqlc"
 
@@ -18,12 +20,12 @@ import (
 func main() {
 	// Leer variables de entorno
 	dbUser := os.Getenv("DB_USER")
-	dbPass := os.Getenv("DB_PASS")
+	dbPass := os.Getenv("DB_PASSWORD") // CORREGIDO: Coincide con docker-compose
 	dbHost := os.Getenv("DB_HOST")
 	dbPort := os.Getenv("DB_PORT")
 	dbName := os.Getenv("DB_NAME")
 
-	// Setear defaults para desarrollo si no existen
+	// Setear defaults para desarrollo
 	if dbUser == "" {
 		dbUser = "postgres"
 	}
@@ -31,7 +33,7 @@ func main() {
 		dbPass = "postgres"
 	}
 	if dbHost == "" {
-		dbHost = "db" // nombre del contenedor en Docker
+		dbHost = "db"
 	}
 	if dbPort == "" {
 		dbPort = "5432"
@@ -65,22 +67,46 @@ func main() {
 
 	// Router
 	r := chi.NewRouter()
+
+	// --- RUTAS API ---
 	r.Get("/b/{slug}", barberiaHandler.GetBarberiaPublic)
 	r.Get("/b/{slug}/agenda", barberiaHandler.GetAgendaPublic)
 	r.Get("/b/{slug}/servicios", serviciosHandler.ListServiciosActivos)
 	r.Get("/b/{slug}/barberos", barberosHandler.ListBarberos)
 	r.Get("/b/{slug}/disponibilidad", barberiaHandler.GetDisponibilidad)
 	r.Post("/b/{slug}/reservar", barberiaHandler.PostReservar)
-	r.Get("/", func(w http.ResponseWriter, r *http.Request) {
-		w.Write([]byte("API OK"))
-	})
+
+	// --- ARCHIVOS ESTÁTICOS (CORREGIDO PARA CHI) ---
+	workDir, _ := os.Getwd()
+	filesDir := http.Dir(filepath.Join(workDir, "web"))
+	FileServer(r, "/", filesDir)
 
 	// Puerto
 	port := os.Getenv("PORT")
 	if port == "" {
-		port = "8080" // default en desarrollo
+		port = "8080"
 	}
 
 	log.Println("Servidor en puerto", port)
 	http.ListenAndServe(":"+port, r)
+}
+
+// FileServer configura convenientemente un manejador de servidor de archivos dentro de Chi
+func FileServer(r chi.Router, path string, root http.FileSystem) {
+	if strings.ContainsAny(path, "{}*") {
+		panic("FileServer does not permit any URL parameters.")
+	}
+
+	if path != "/" && path[len(path)-1] != '/' {
+		r.Get(path, http.RedirectHandler(path+"/", 301).ServeHTTP)
+		path += "/"
+	}
+	path += "*"
+
+	r.Get(path, func(w http.ResponseWriter, r *http.Request) {
+		rctx := chi.RouteContext(r.Context())
+		pathPrefix := strings.TrimSuffix(rctx.RoutePattern(), "/*")
+		fs := http.StripPrefix(pathPrefix, http.FileServer(root))
+		fs.ServeHTTP(w, r)
+	})
 }

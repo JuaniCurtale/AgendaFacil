@@ -24,6 +24,7 @@ WORKDIR /root/
 COPY --from=builder /app/app .
 
 
+COPY web/ ./web
 # Copiar .env al contenedor
 COPY .env .env
 
