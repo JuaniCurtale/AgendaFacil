@@ -32,9 +32,37 @@
 <div class="container">
   <h1>💈 Agenda Fácil</h1>
   
+  <div style="display:flex; gap:8px; justify-content:center; margin-bottom:12px;">
+    <button id="btn-client" onclick="showClient()" style="padding:8px 12px; border-radius:8px;">Vista Cliente</button>
+    <button id="btn-admin" onclick="showAdmin()" style="padding:8px 12px; border-radius:8px;">Barbero / Admin</button>
+  </div>
   <div style="background: #fff3cd; padding: 10px; border-radius: 6px; font-size: 0.9em; margin-bottom: 15px;">
     <label style="margin-top:0">Slug Barbería (Test):</label>
     <input id="slug" value="test" onchange="cargarDatosIniciales()" />
+  </div>
+
+  <!-- Login / Admin Panel -->
+  <div id="admin-panel" class="hidden" style="margin-bottom:15px;">
+    <div style="background:#f8f9fa; padding:12px; border-radius:8px;">
+      <h3 style="margin:0 0 8px 0">🔒 Login (Admin / Barbero)</h3>
+      <label>Usuario:</label>
+      <input id="username" placeholder="usuario" />
+      <label>Contraseña:</label>
+      <input id="password" type="password" placeholder="contraseña" />
+      <div style="display:flex; gap:8px; margin-top:8px;">
+        <button class="primary" style="flex:1; padding:8px" onclick="login()">Entrar</button>
+        <button style="flex:1; padding:8px" onclick="logout()">Cerrar sesión</button>
+      </div>
+      <p id="admin-msg" style="color:#555; margin-top:8px"></p>
+    </div>
+
+    <div id="admin-controls" class="hidden" style="margin-top:10px; background:#ffffff; padding:10px; border-radius:8px;">
+      <h4 style="margin-top:0">Panel Admin</h4>
+      <label>Fecha (ver turnos):</label>
+      <input id="admin-fecha" type="date" />
+      <button style="margin-top:8px;" onclick="cargarAgendaAdmin()">Cargar Agenda</button>
+      <div id="admin-agenda" style="margin-top:10px; max-height:260px; overflow:auto;"></div>
+    </div>
   </div>
 
   <div class="step">
@@ -79,8 +107,34 @@
   // Al cargar la página, inicializamos la fecha de hoy y cargamos datos
   window.onload = () => {
     document.getElementById("fecha").valueAsDate = new Date();
+    // Inicializar fechas
+    document.getElementById("admin-fecha").valueAsDate = new Date();
     cargarDatosIniciales();
+    // Estado de sesión
+    const token = localStorage.getItem('token');
+    if (token) {
+      document.getElementById('admin-msg').innerText = 'Sesión iniciada';
+      showAdmin();
+      document.getElementById('admin-controls').classList.remove('hidden');
+    } else {
+      showClient();
+    }
   };
+
+  function showAdmin() {
+    document.getElementById('admin-panel').classList.remove('hidden');
+    document.querySelectorAll('.step').forEach(el => el.classList.add('hidden'));
+    document.getElementById('btn-admin').disabled = true;
+    document.getElementById('btn-client').disabled = false;
+  }
+
+  function showClient() {
+    document.getElementById('admin-panel').classList.add('hidden');
+    // mostrar todos los pasos de cliente
+    document.querySelectorAll('.step').forEach(el => el.classList.remove('hidden'));
+    document.getElementById('btn-client').disabled = true;
+    document.getElementById('btn-admin').disabled = false;
+  }
 
   // 1. Cargar Servicios y Barberos al iniciar
   async function cargarDatosIniciales() {
@@ -202,6 +256,67 @@
 
   function mostrarError(msg) {
     document.getElementById("msg-error").innerText = msg;
+  }
+
+  // ------- Login / Admin JS -------
+  async function login() {
+    const username = document.getElementById('username').value;
+    const password = document.getElementById('password').value;
+    try {
+      const res = await fetch(`${API_URL}/login`, {
+        method: 'POST', headers: {'Content-Type':'application/json'},
+        body: JSON.stringify({username, password})
+      });
+
+      if (!res.ok) {
+        const txt = await res.text();
+        document.getElementById('admin-msg').innerText = 'Error: ' + txt;
+        return;
+      }
+
+      const data = await res.json();
+      localStorage.setItem('token', data.token);
+      localStorage.setItem('rol', data.rol || '');
+      document.getElementById('admin-msg').innerText = 'Conectado como ' + (data.rol||'');
+      document.getElementById('admin-controls').classList.remove('hidden');
+      cargarAgendaAdmin();
+    } catch (e) {
+      document.getElementById('admin-msg').innerText = 'Error de conexión';
+    }
+  }
+
+  function logout() {
+    localStorage.removeItem('token');
+    localStorage.removeItem('rol');
+    document.getElementById('admin-msg').innerText = 'Sesión cerrada';
+    document.getElementById('admin-controls').classList.add('hidden');
+    showClient();
+  }
+
+  async function cargarAgendaAdmin() {
+    const slug = document.getElementById('slug').value;
+    const fecha = document.getElementById('admin-fecha').value;
+    const cont = document.getElementById('admin-agenda');
+    cont.innerHTML = 'Cargando...';
+    try {
+      const token = localStorage.getItem('token');
+      const headers = token ? { 'Authorization': 'Bearer ' + token } : {};
+      const res = await fetch(`${API_URL}/b/${slug}/agenda?fecha=${fecha}`, { headers });
+      if (!res.ok) {
+        cont.innerText = 'Error cargando agenda: ' + await res.text();
+        return;
+      }
+      const turnos = await res.json();
+      if (!turnos || turnos.length === 0) {
+        cont.innerHTML = '<div>No hay turnos</div>';
+        return;
+      }
+      cont.innerHTML = '<table style="width:100%; border-collapse:collapse;\"><tr><th>Barbero</th><th>Servicio</th><th>Inicio</th><th>Fin</th><th>Cliente</th></tr>' +
+        turnos.map(t => `<tr style="border-top:1px solid #eee"><td>${t.barbero_id}</td><td>${t.servicio_id}</td><td>${new Date(t.hora_inicio).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</td><td>${new Date(t.hora_fin).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</td><td>${t.cliente_nombre||''}</td></tr>`).join('') +
+        '</table>';
+    } catch (e) {
+      cont.innerText = 'Error de conexión';
+    }
   }
 
   // Escuchar cambio de fecha manual también
