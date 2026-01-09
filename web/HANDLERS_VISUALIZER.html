@@ -1,0 +1,849 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AgendaFacil - Visualizador de Handlers</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        header {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            margin-bottom: 30px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+
+        h1 {
+            color: #667eea;
+            margin-bottom: 10px;
+        }
+
+        .subtitle {
+            color: #666;
+            font-size: 14px;
+        }
+
+        .handlers-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .handler-card {
+            background: white;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .handler-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 40px rgba(0,0,0,0.3);
+        }
+
+        .handler-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            border-bottom: 5px solid #f093fb;
+        }
+
+        .handler-title {
+            font-size: 20px;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+
+        .handler-method {
+            display: inline-block;
+            background: rgba(255,255,255,0.3);
+            padding: 5px 10px;
+            border-radius: 5px;
+            font-size: 12px;
+            font-weight: bold;
+            margin-top: 10px;
+        }
+
+        .method-get { background: rgba(52, 152, 219, 0.3); }
+        .method-post { background: rgba(46, 204, 113, 0.3); }
+
+        .handler-body {
+            padding: 20px;
+        }
+
+        .endpoint {
+            background: #f5f5f5;
+            padding: 10px;
+            border-radius: 5px;
+            margin-bottom: 10px;
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+            word-break: break-all;
+            color: #333;
+        }
+
+        .description {
+            color: #666;
+            font-size: 13px;
+            margin-bottom: 15px;
+            line-height: 1.5;
+        }
+
+        .params {
+            background: #f9f9f9;
+            border-left: 4px solid #667eea;
+            padding: 10px;
+            margin-bottom: 10px;
+            border-radius: 3px;
+            font-size: 12px;
+        }
+
+        .params-title {
+            font-weight: bold;
+            color: #667eea;
+            margin-bottom: 5px;
+        }
+
+        .param-item {
+            color: #555;
+            margin: 3px 0;
+            padding-left: 10px;
+        }
+
+        .test-btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 13px;
+            font-weight: bold;
+            transition: transform 0.2s ease;
+            width: 100%;
+            margin-top: 10px;
+        }
+
+        .test-btn:hover {
+            transform: scale(1.02);
+        }
+
+        .test-btn:active {
+            transform: scale(0.98);
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.5);
+            animation: fadeIn 0.3s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        .modal-content {
+            background-color: white;
+            margin: 5% auto;
+            padding: 30px;
+            border-radius: 10px;
+            width: 90%;
+            max-width: 800px;
+            max-height: 80vh;
+            overflow-y: auto;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            border-bottom: 2px solid #667eea;
+            padding-bottom: 15px;
+        }
+
+        .modal-header h2 {
+            color: #667eea;
+        }
+
+        .close-btn {
+            color: #aaa;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+            background: none;
+            border: none;
+        }
+
+        .close-btn:hover {
+            color: #000;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            color: #333;
+            font-weight: bold;
+            font-size: 13px;
+        }
+
+        .form-group input,
+        .form-group textarea {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-family: 'Courier New', monospace;
+            font-size: 13px;
+        }
+
+        .form-group textarea {
+            resize: vertical;
+            min-height: 100px;
+        }
+
+        .send-btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 14px;
+            width: 100%;
+            transition: transform 0.2s ease;
+        }
+
+        .send-btn:hover {
+            transform: scale(1.02);
+        }
+
+        .response-container {
+            background: #f5f5f5;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            padding: 15px;
+            margin-top: 20px;
+            display: none;
+        }
+
+        .response-container.show {
+            display: block;
+        }
+
+        .response-status {
+            font-weight: bold;
+            margin-bottom: 10px;
+            padding: 10px;
+            border-radius: 5px;
+        }
+
+        .status-success {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .status-error {
+            background: #f8d7da;
+            color: #721c24;
+        }
+
+        .response-body {
+            background: white;
+            border: 1px solid #ddd;
+            padding: 10px;
+            border-radius: 5px;
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+            max-height: 300px;
+            overflow-y: auto;
+            word-break: break-all;
+            white-space: pre-wrap;
+            line-height: 1.4;
+        }
+
+        .status-badge {
+            display: inline-block;
+            padding: 3px 8px;
+            border-radius: 3px;
+            font-size: 11px;
+            font-weight: bold;
+            margin-left: 10px;
+        }
+
+        .badge-get {
+            background: #3498db;
+            color: white;
+        }
+
+        .badge-post {
+            background: #2ecc71;
+            color: white;
+        }
+
+        .badge-success {
+            background: #27ae60;
+            color: white;
+        }
+
+        .badge-error {
+            background: #e74c3c;
+            color: white;
+        }
+
+        .stats {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 30px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 20px;
+        }
+
+        .stat-item {
+            text-align: center;
+            padding: 15px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-radius: 5px;
+        }
+
+        .stat-number {
+            font-size: 24px;
+            font-weight: bold;
+        }
+
+        .stat-label {
+            font-size: 12px;
+            margin-top: 5px;
+            opacity: 0.9;
+        }
+
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #667eea;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .info-box {
+            background: #e3f2fd;
+            border-left: 4px solid #2196f3;
+            padding: 15px;
+            margin-bottom: 20px;
+            border-radius: 3px;
+            color: #1565c0;
+            font-size: 13px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>📋 AgendaFacil - Visualizador de Handlers</h1>
+            <p class="subtitle">Suite interactiva para probar los endpoints API</p>
+        </header>
+
+        <div class="stats">
+            <div class="stat-item">
+                <div class="stat-number">6</div>
+                <div class="stat-label">Handlers</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-number">7</div>
+                <div class="stat-label">Endpoints</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-number">11</div>
+                <div class="stat-label">Tests</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-number">✅</div>
+                <div class="stat-label">Status</div>
+            </div>
+        </div>
+
+        <div class="info-box">
+            ℹ️ Asegúrate de tener el servidor ejecutándose en http://localhost:8080 antes de hacer requests
+        </div>
+
+        <div class="handlers-grid">
+            <!-- AuthHandler -->
+            <div class="handler-card">
+                <div class="handler-header">
+                    <div class="handler-title">🔐 AuthHandler</div>
+                    <span class="handler-method method-post badge-post">POST</span>
+                </div>
+                <div class="handler-body">
+                    <p class="description">Gestiona autenticación de usuarios. Genera JWT tokens válidos por 24 horas.</p>
+                    <div class="endpoint">/login</div>
+                    <div class="params">
+                        <div class="params-title">📝 Parámetros (JSON):</div>
+                        <div class="param-item">• username: string (requerido)</div>
+                        <div class="param-item">• password: string (requerido)</div>
+                    </div>
+                    <div class="params">
+                        <div class="params-title">✅ Respuesta:</div>
+                        <div class="param-item">• token: JWT token</div>
+                        <div class="param-item">• rol: rol del usuario</div>
+                    </div>
+                    <button class="test-btn" onclick="abrirModal('auth')">Probar 🧪</button>
+                </div>
+            </div>
+
+            <!-- BarberiaHandler -->
+            <div class="handler-card">
+                <div class="handler-header">
+                    <div class="handler-title">💇 BarberiaHandler</div>
+                    <span class="handler-method method-get badge-get">GET</span>
+                    <span class="handler-method method-post badge-post">POST</span>
+                </div>
+                <div class="handler-body">
+                    <p class="description">Obtiene información pública de barberías, agendas y maneja reservas.</p>
+                    <div class="endpoint">GET /b/{slug}</div>
+                    <div class="endpoint">GET /b/{slug}/agenda?fecha=YYYY-MM-DD</div>
+                    <div class="endpoint">POST /b/{slug}/reservar</div>
+                    <div class="params">
+                        <div class="params-title">📝 Parámetros:</div>
+                        <div class="param-item">• slug: identificador de barbería</div>
+                        <div class="param-item">• fecha: formato YYYY-MM-DD</div>
+                    </div>
+                    <button class="test-btn" onclick="abrirModal('barberia')">Probar 🧪</button>
+                </div>
+            </div>
+
+            <!-- ServiciosHandler -->
+            <div class="handler-card">
+                <div class="handler-header">
+                    <div class="handler-title">✂️ ServiciosHandler</div>
+                    <span class="handler-method method-get badge-get">GET</span>
+                </div>
+                <div class="handler-body">
+                    <p class="description">Lista todos los servicios activos de una barbería (cortes, barbas, etc).</p>
+                    <div class="endpoint">GET /b/{slug}/servicios</div>
+                    <div class="params">
+                        <div class="params-title">✅ Retorna:</div>
+                        <div class="param-item">• id: int</div>
+                        <div class="param-item">• nombre: string</div>
+                        <div class="param-item">• duracion_minutos: int</div>
+                        <div class="param-item">• precio: string</div>
+                    </div>
+                    <button class="test-btn" onclick="abrirModal('servicios')">Probar 🧪</button>
+                </div>
+            </div>
+
+            <!-- BarberosHandler -->
+            <div class="handler-card">
+                <div class="handler-header">
+                    <div class="handler-title">👨‍⚕️ BarberosHandler</div>
+                    <span class="handler-method method-get badge-get">GET</span>
+                </div>
+                <div class="handler-body">
+                    <p class="description">Lista todos los barberos disponibles de una barbería.</p>
+                    <div class="endpoint">GET /b/{slug}/barberos</div>
+                    <div class="params">
+                        <div class="params-title">✅ Retorna:</div>
+                        <div class="param-item">• id: int</div>
+                        <div class="param-item">• nombre: string</div>
+                        <div class="param-item">• apellido: string</div>
+                        <div class="param-item">• rol: 'barbero'</div>
+                    </div>
+                    <button class="test-btn" onclick="abrirModal('barberos')">Probar 🧪</button>
+                </div>
+            </div>
+
+            <!-- DisponibilidadHandler -->
+            <div class="handler-card">
+                <div class="handler-header">
+                    <div class="handler-title">📅 DisponibilidadHandler</div>
+                    <span class="handler-method method-get badge-get">GET</span>
+                </div>
+                <div class="handler-body">
+                    <p class="description">Calcula slots disponibles para reservas sin conflictos de horarios.</p>
+                    <div class="endpoint">GET /b/{slug}/disponibilidad</div>
+                    <div class="params">
+                        <div class="params-title">📝 Parámetros Query:</div>
+                        <div class="param-item">• fecha: YYYY-MM-DD (requerido)</div>
+                        <div class="param-item">• servicio_id: int (requerido)</div>
+                    </div>
+                    <div class="params">
+                        <div class="params-title">✅ Retorna:</div>
+                        <div class="param-item">Array de slots: [{ inicio, fin }]</div>
+                    </div>
+                    <button class="test-btn" onclick="abrirModal('disponibilidad')">Probar 🧪</button>
+                </div>
+            </div>
+
+            <!-- ReservasHandler -->
+            <div class="handler-card">
+                <div class="handler-header">
+                    <div class="handler-title">🎟️ ReservasHandler</div>
+                    <span class="handler-method method-post badge-post">POST</span>
+                </div>
+                <div class="handler-body">
+                    <p class="description">Crea nuevas reservas validando disponibilidad y sin solapamientos.</p>
+                    <div class="endpoint">POST /b/{slug}/reservar</div>
+                    <div class="params">
+                        <div class="params-title">📝 Body (JSON):</div>
+                        <div class="param-item">• servicio_id: int</div>
+                        <div class="param-item">• barbero_id: int</div>
+                        <div class="param-item">• fecha: YYYY-MM-DD</div>
+                        <div class="param-item">• hora_inicio: HH:MM</div>
+                        <div class="param-item">• cliente_nombre: string</div>
+                        <div class="param-item">• cliente_telefono: string</div>
+                    </div>
+                    <button class="test-btn" onclick="abrirModal('reservas')">Probar 🧪</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODALES -->
+
+    <!-- Auth Modal -->
+    <div id="authModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>🔐 Probar Login</h2>
+                <button class="close-btn" onclick="cerrarModal('auth')">&times;</button>
+            </div>
+            <div class="form-group">
+                <label>Username:</label>
+                <input type="text" id="authUsername" placeholder="ej: admin" value="admin">
+            </div>
+            <div class="form-group">
+                <label>Password:</label>
+                <input type="password" id="authPassword" placeholder="ej: password" value="password">
+            </div>
+            <button class="send-btn" onclick="testAuth()">Enviar Request</button>
+            <div id="authResponse" class="response-container">
+                <div class="response-status" id="authStatus"></div>
+                <div class="response-body" id="authBody"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Barberia Modal -->
+    <div id="barberiaModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>💇 Probar Barbería</h2>
+                <button class="close-btn" onclick="cerrarModal('barberia')">&times;</button>
+            </div>
+            <div class="form-group">
+                <label>Slug:</label>
+                <input type="text" id="barberiaSlug" placeholder="ej: la-barberia" value="la-barberia">
+            </div>
+            <div class="form-group">
+                <label>Endpoint:</label>
+                <select id="barberiaEndpoint" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 5px;">
+                    <option value="info">GET /b/{slug} - Info</option>
+                    <option value="agenda">GET /b/{slug}/agenda - Agenda</option>
+                </select>
+            </div>
+            <div class="form-group" id="fechaGroup" style="display:none;">
+                <label>Fecha (para agenda):</label>
+                <input type="date" id="barberiaFecha">
+            </div>
+            <button class="send-btn" onclick="testBarberia()">Enviar Request</button>
+            <div id="barberiaResponse" class="response-container">
+                <div class="response-status" id="barberiaStatus"></div>
+                <div class="response-body" id="barberiaBody"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Servicios Modal -->
+    <div id="serviciosModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>✂️ Probar Servicios</h2>
+                <button class="close-btn" onclick="cerrarModal('servicios')">&times;</button>
+            </div>
+            <div class="form-group">
+                <label>Slug:</label>
+                <input type="text" id="serviciosSlug" placeholder="ej: la-barberia" value="la-barberia">
+            </div>
+            <button class="send-btn" onclick="testServicios()">Enviar Request</button>
+            <div id="serviciosResponse" class="response-container">
+                <div class="response-status" id="serviciosStatus"></div>
+                <div class="response-body" id="serviciosBody"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Barberos Modal -->
+    <div id="barberosModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>👨‍⚕️ Probar Barberos</h2>
+                <button class="close-btn" onclick="cerrarModal('barberos')">&times;</button>
+            </div>
+            <div class="form-group">
+                <label>Slug:</label>
+                <input type="text" id="barberosSlug" placeholder="ej: la-barberia" value="la-barberia">
+            </div>
+            <button class="send-btn" onclick="testBarberos()">Enviar Request</button>
+            <div id="barberosResponse" class="response-container">
+                <div class="response-status" id="barberosStatus"></div>
+                <div class="response-body" id="barberosBody"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Disponibilidad Modal -->
+    <div id="disponibilidadModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>📅 Probar Disponibilidad</h2>
+                <button class="close-btn" onclick="cerrarModal('disponibilidad')">&times;</button>
+            </div>
+            <div class="form-group">
+                <label>Slug:</label>
+                <input type="text" id="dispSlug" placeholder="ej: la-barberia" value="la-barberia">
+            </div>
+            <div class="form-group">
+                <label>Fecha:</label>
+                <input type="date" id="dispFecha">
+            </div>
+            <div class="form-group">
+                <label>Servicio ID:</label>
+                <input type="number" id="dispServicioId" placeholder="ej: 1" value="1">
+            </div>
+            <button class="send-btn" onclick="testDisponibilidad()">Enviar Request</button>
+            <div id="disponibilidadResponse" class="response-container">
+                <div class="response-status" id="disponibilidadStatus"></div>
+                <div class="response-body" id="disponibilidadBody"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Reservas Modal -->
+    <div id="reservasModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>🎟️ Probar Reserva</h2>
+                <button class="close-btn" onclick="cerrarModal('reservas')">&times;</button>
+            </div>
+            <div class="form-group">
+                <label>Slug:</label>
+                <input type="text" id="reservaSlug" placeholder="ej: la-barberia" value="la-barberia">
+            </div>
+            <div class="form-group">
+                <label>Servicio ID:</label>
+                <input type="number" id="reservaServicioId" placeholder="ej: 1" value="1">
+            </div>
+            <div class="form-group">
+                <label>Barbero ID:</label>
+                <input type="number" id="reservaBarberoId" placeholder="ej: 1" value="1">
+            </div>
+            <div class="form-group">
+                <label>Fecha:</label>
+                <input type="date" id="reservaFecha">
+            </div>
+            <div class="form-group">
+                <label>Hora Inicio:</label>
+                <input type="time" id="reservaHora" value="10:00">
+            </div>
+            <div class="form-group">
+                <label>Cliente Nombre:</label>
+                <input type="text" id="reservaNombre" placeholder="Juan Pérez">
+            </div>
+            <div class="form-group">
+                <label>Cliente Teléfono:</label>
+                <input type="tel" id="reservaTelefono" placeholder="555-1234567">
+            </div>
+            <button class="send-btn" onclick="testReserva()">Enviar Request</button>
+            <div id="reservasResponse" class="response-container">
+                <div class="response-status" id="reservasStatus"></div>
+                <div class="response-body" id="reservasBody"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = 'http://localhost:8080';
+
+        function abrirModal(handler) {
+            const modalId = handler + 'Modal';
+            document.getElementById(modalId).style.display = 'block';
+            if (handler === 'barberia') {
+                document.getElementById('fechaGroup').style.display = 'block';
+            }
+            document.getElementById(handler + 'Endpoint')?.addEventListener('change', function() {
+                document.getElementById('fechaGroup').style.display = 
+                    this.value === 'agenda' ? 'block' : 'none';
+            });
+        }
+
+        function cerrarModal(handler) {
+            document.getElementById(handler + 'Modal').style.display = 'none';
+        }
+
+        window.onclick = function(event) {
+            if (event.target.classList.contains('modal')) {
+                event.target.style.display = 'none';
+            }
+        }
+
+        async function hacerRequest(metodo, endpoint, datos = null) {
+            try {
+                const opciones = {
+                    method: metodo,
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                };
+
+                if (datos) {
+                    opciones.body = JSON.stringify(datos);
+                }
+
+                const respuesta = await fetch(API_BASE + endpoint, opciones);
+                const contenido = await respuesta.text();
+
+                return {
+                    status: respuesta.status,
+                    statusText: respuesta.statusText,
+                    body: contenido
+                };
+            } catch (error) {
+                return {
+                    status: 0,
+                    statusText: 'Error de conexión',
+                    body: error.message
+                };
+            }
+        }
+
+        function mostrarRespuesta(tipo, respuesta) {
+            const responseDiv = document.getElementById(tipo + 'Response');
+            const statusDiv = document.getElementById(tipo + 'Status');
+            const bodyDiv = document.getElementById(tipo + 'Body');
+
+            responseDiv.classList.add('show');
+
+            const esExito = respuesta.status >= 200 && respuesta.status < 300;
+            statusDiv.className = 'response-status ' + (esExito ? 'status-success' : 'status-error');
+            statusDiv.innerHTML = `<span class="badge-${esExito ? 'success' : 'error'}">${respuesta.status}</span> ${respuesta.statusText}`;
+
+            try {
+                const json = JSON.parse(respuesta.body);
+                bodyDiv.textContent = JSON.stringify(json, null, 2);
+            } catch {
+                bodyDiv.textContent = respuesta.body || '(vacío)';
+            }
+        }
+
+        async function testAuth() {
+            const username = document.getElementById('authUsername').value;
+            const password = document.getElementById('authPassword').value;
+
+            const respuesta = await hacerRequest('POST', '/login', { username, password });
+            mostrarRespuesta('auth', respuesta);
+        }
+
+        async function testBarberia() {
+            const slug = document.getElementById('barberiaSlug').value;
+            const endpoint = document.getElementById('barberiaEndpoint').value;
+            let url = `/b/${slug}`;
+
+            if (endpoint === 'agenda') {
+                const fecha = document.getElementById('barberiaFecha').value;
+                url += `?fecha=${fecha || '2025-01-09'}`;
+            }
+
+            const respuesta = await hacerRequest('GET', url);
+            mostrarRespuesta('barberia', respuesta);
+        }
+
+        async function testServicios() {
+            const slug = document.getElementById('serviciosSlug').value;
+            const respuesta = await hacerRequest('GET', `/b/${slug}/servicios`);
+            mostrarRespuesta('servicios', respuesta);
+        }
+
+        async function testBarberos() {
+            const slug = document.getElementById('barberosSlug').value;
+            const respuesta = await hacerRequest('GET', `/b/${slug}/barberos`);
+            mostrarRespuesta('barberos', respuesta);
+        }
+
+        async function testDisponibilidad() {
+            const slug = document.getElementById('dispSlug').value;
+            const fecha = document.getElementById('dispFecha').value || '2025-01-09';
+            const servicioId = document.getElementById('dispServicioId').value || '1';
+
+            const url = `/b/${slug}/disponibilidad?fecha=${fecha}&servicio_id=${servicioId}`;
+            const respuesta = await hacerRequest('GET', url);
+            mostrarRespuesta('disponibilidad', respuesta);
+        }
+
+        async function testReserva() {
+            const slug = document.getElementById('reservaSlug').value;
+            const datos = {
+                servicio_id: parseInt(document.getElementById('reservaServicioId').value),
+                barbero_id: parseInt(document.getElementById('reservaBarberoId').value),
+                fecha: document.getElementById('reservaFecha').value || '2025-01-09',
+                hora_inicio: document.getElementById('reservaHora').value || '10:00',
+                cliente_nombre: document.getElementById('reservaNombre').value || 'Cliente',
+                cliente_telefono: document.getElementById('reservaTelefono').value || '5551234567'
+            };
+
+            const respuesta = await hacerRequest('POST', `/b/${slug}/reservar`, datos);
+            mostrarRespuesta('reservas', respuesta);
+        }
+
+        // Establecer fecha de hoy por defecto
+        document.addEventListener('DOMContentLoaded', function() {
+            const hoy = new Date().toISOString().split('T')[0];
+            document.getElementById('barberiaFecha').value = hoy;
+            document.getElementById('dispFecha').value = hoy;
+            document.getElementById('reservaFecha').value = hoy;
+        });
+    </script>
+</body>
+</html>

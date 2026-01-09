@@ -82,6 +82,16 @@ func main() {
 	// --- ARCHIVOS ESTÁTICOS (CORREGIDO PARA CHI) ---
 	workDir, _ := os.Getwd()
 	filesDir := http.Dir(filepath.Join(workDir, "web"))
+
+	// Servir archivos HTML específicos
+	r.Get("/handlers.html", func(w http.ResponseWriter, r *http.Request) {
+		http.ServeFile(w, r, filepath.Join(workDir, "web", "HANDLERS_VISUALIZER.html"))
+	})
+	r.Get("/index.html", func(w http.ResponseWriter, r *http.Request) {
+		http.ServeFile(w, r, filepath.Join(workDir, "web", "index.html"))
+	})
+
+	// FileServer para otros archivos estáticos
 	FileServer(r, "/", filesDir)
 
 	// Puerto
