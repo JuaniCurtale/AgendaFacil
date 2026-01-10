@@ -1,4 +1,4 @@
-<!doctype html>
+﻿<!doctype html>
 <html lang="es">
 <head>
   <meta charset="utf-8" />
@@ -32,7 +32,7 @@
         <a id="navCalendar" href="#">Calendario</a>
         <a id="navServicios" href="#">Servicios</a>
         <a id="navBarberos" href="#">Barberos</a>
-        <a id="navConfig" href="#">Configuración</a>
+        <a id="navConfig" href="#">Configuraci├│n</a>
       </nav>
     </aside>
 
@@ -40,11 +40,11 @@
       <div class="header">
         <h1>Panel Admin</h1>
         <div style="display:flex;gap:12px;align-items:center">
-          <small id="slugLabel">Barbería: <strong>test</strong></small>
+          <small id="slugLabel">Barber├¡a: <strong>test</strong></small>
 
           <form id="loginForm" style="display:flex;gap:8px;align-items:center">
             <input id="loginUser" placeholder="usuario" style="padding:6px;border-radius:6px;border:1px solid #ddd" />
-            <input id="loginPass" type="password" placeholder="contraseña" style="padding:6px;border-radius:6px;border:1px solid #ddd" />
+            <input id="loginPass" type="password" placeholder="contrase├▒a" style="padding:6px;border-radius:6px;border:1px solid #ddd" />
             <button type="button" id="btnLogin" style="padding:6px 10px;border-radius:6px;background:var(--accent);color:#fff;border:none">Entrar</button>
             <button type="button" id="btnLogout" style="padding:6px 10px;border-radius:6px;background:#eee;color:#111;border:none;display:none">Salir</button>
           </form>
@@ -56,25 +56,25 @@
       <div class="cards">
         <div class="card">
           <h3>Turnos de Hoy</h3>
-          <div class="num" id="turnosHoy">—</div>
+          <div class="num" id="turnosHoy">ÔÇö</div>
         </div>
         <div class="card">
           <h3>Cancelaciones Hoy</h3>
-          <div class="num" id="cancelHoy">—</div>
+          <div class="num" id="cancelHoy">ÔÇö</div>
         </div>
         <div class="card">
           <h3>Turnos Pendientes</h3>
-          <div class="num" id="turnosPend">—</div>
+          <div class="num" id="turnosPend">ÔÇö</div>
         </div>
         <div class="card">
           <h3>Comprobantes Pendientes</h3>
-          <div class="num" id="comprobantes">—</div>
+          <div class="num" id="comprobantes">ÔÇö</div>
         </div>
       </div>
 
       <div class="section">
         <div class="card table">
-          <h3>Últimas Cancelaciones</h3>
+          <h3>├Ültimas Cancelaciones</h3>
           <div id="cancelList">No hay cancelaciones recientes</div>
         </div>
       </div>
@@ -102,9 +102,9 @@
 
       <div id="configSection" class="section" style="display:none">
         <div class="card table">
-          <h3>Configuración</h3>
+          <h3>Configuraci├│n</h3>
           <form id="configForm" style="display:flex;flex-direction:column;gap:8px;max-width:480px">
-            <input id="cfgNombre" placeholder="Nombre barbería" style="padding:8px;border-radius:6px;border:1px solid #ddd" />
+            <input id="cfgNombre" placeholder="Nombre barber├¡a" style="padding:8px;border-radius:6px;border:1px solid #ddd" />
             <input id="cfgSlug" placeholder="Slug" style="padding:8px;border-radius:6px;border:1px solid #ddd" />
             <div style="display:flex;gap:8px">
               <input id="cfgHoraApertura" placeholder="Apertura (HH:MM)" style="padding:8px;border-radius:6px;border:1px solid #ddd" />
@@ -125,7 +125,7 @@
           <div style="margin-top:8px">
             <form id="createServicioForm" style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
               <input id="svcNombre" placeholder="Nombre servicio" style="padding:6px;border-radius:6px;border:1px solid #ddd" />
-              <input id="svcDur" placeholder="Duración (min)" type="number" style="width:120px;padding:6px;border-radius:6px;border:1px solid #ddd" />
+              <input id="svcDur" placeholder="Duraci├│n (min)" type="number" style="width:120px;padding:6px;border-radius:6px;border:1px solid #ddd" />
               <input id="svcPrecio" placeholder="Precio" style="width:120px;padding:6px;border-radius:6px;border:1px solid #ddd" />
               <button type="button" id="btnCreateServicio" style="padding:6px 10px;border-radius:6px;background:#10b981;color:#fff;border:none">Crear Servicio</button>
             </form>
@@ -150,7 +150,7 @@
   </div>
 
   <script>
-    // Demo: usa el slug 'test' por defecto. Puedes cambiarlo dinámicamente.
+    // Demo: usa el slug 'test' por defecto. Puedes cambiarlo din├ímicamente.
     const SLUG = 'test';
 
     async function fetchJson(url, opts){
@@ -170,7 +170,7 @@
       const servicios = await fetchJson(`/b/${SLUG}/servicios`);
       const el = document.getElementById('serviciosList');
       if(servicios){
-        el.innerHTML = servicios.map(s=>`<div><strong>${s.nombre}</strong> — ${s.duracion_minutos} min — $${s.precio}</div>`).join('');
+        el.innerHTML = servicios.map(s=>`<div><strong>${s.nombre}</strong> ÔÇö ${s.duracion_minutos} min ÔÇö $${s.precio}</div>`).join('');
       } else {
         el.textContent = 'Error cargando servicios';
       }
@@ -192,11 +192,11 @@
         const b = data.barberia;
         document.getElementById('cfgNombre').value = b.nombre || '';
         document.getElementById('cfgSlug').value = b.slug || '';
-        // hora_apertura/hora_cierre come as time strings '09:00:00Z' in some responses — try slice
+        // hora_apertura/hora_cierre come as time strings '09:00:00Z' in some responses ÔÇö try slice
         document.getElementById('cfgHoraApertura').value = (b.hora_apertura || '').slice(11,16) || '';
         document.getElementById('cfgHoraCierre').value = (b.hora_cierre || '').slice(11,16) || '';
       } else {
-        document.getElementById('configResult').textContent = 'Error cargando configuración';
+        document.getElementById('configResult').textContent = 'Error cargando configuraci├│n';
       }
     }
 
@@ -206,8 +206,8 @@
       const barberos = await fetchJson(`/b/${SLUG}/barberos`);
       const today = new Date().toISOString().slice(0,10);
       const agenda = await fetchJson(`/b/${SLUG}/agenda?fecha=${today}`);
-      document.getElementById('turnosHoy').textContent = Array.isArray(agenda)? agenda.length : '—';
-      document.getElementById('turnosPend').textContent = Array.isArray(barberos)? barberos.length : '—';
+      document.getElementById('turnosHoy').textContent = Array.isArray(agenda)? agenda.length : 'ÔÇö';
+      document.getElementById('turnosPend').textContent = Array.isArray(barberos)? barberos.length : 'ÔÇö';
       document.getElementById('serviciosList').textContent = '';
       if(Array.isArray(servicios)){
         document.getElementById('serviciosList').innerHTML = servicios.map(s=>`<div>${s.nombre}</div>`).join('');
@@ -237,7 +237,7 @@
       const p = document.getElementById('loginPass').value;
       const body = JSON.stringify({ username: u, password: p });
       const res = await fetch(`/login`, { method: 'POST', headers: {'Content-Type':'application/json'}, body });
-      if(!res.ok){ alert('Login falló: '+res.status); return }
+      if(!res.ok){ alert('Login fall├│: '+res.status); return }
       const j = await res.json();
       setToken(j.token);
     }
