@@ -6,6 +6,7 @@ import (
 	"time"
 
 	db "agendaFacil/db/sqlc"
+	"strings"
 
 	"github.com/golang-jwt/jwt/v5"
 	"golang.org/x/crypto/bcrypt"
@@ -77,5 +78,42 @@ func (h *AuthHandler) Login(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(map[string]string{
 		"token": tokenString,
 		"rol":   usuario.Rol,
+	})
+}
+
+// AuthMiddleware verifica que el usuario tenga un token válido
+func AuthMiddleware(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		// 1. Leer el header Authorization: "Bearer <token>"
+		authHeader := r.Header.Get("Authorization")
+		if authHeader == "" {
+			http.Error(w, "Se requiere autenticación", http.StatusUnauthorized)
+			return
+		}
+
+		parts := strings.Split(authHeader, " ")
+		if len(parts) != 2 || parts[0] != "Bearer" {
+			http.Error(w, "Formato de token inválido", http.StatusUnauthorized)
+			return
+		}
+
+		tokenStr := parts[1]
+
+		// 2. Parsear y validar el token
+		claims := &Claims{}
+		token, err := jwt.ParseWithClaims(tokenStr, claims, func(token *jwt.Token) (interface{}, error) {
+			return jwtKey, nil
+		})
+
+		if err != nil || !token.Valid {
+			http.Error(w, "Token inválido o expirado", http.StatusUnauthorized)
+			return
+		}
+
+		// (Opcional) Podrías guardar el UserID en el contexto aquí si lo necesitas luego
+		// ctx := context.WithValue(r.Context(), "userID", claims.UserID)
+		// next.ServeHTTP(w, r.WithContext(ctx))
+
+		next.ServeHTTP(w, r)
 	})
 }

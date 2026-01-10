@@ -79,6 +79,15 @@ func main() {
 	r.Get("/b/{slug}/disponibilidad", barberiaHandler.GetDisponibilidad)
 	r.Post("/b/{slug}/reservar", barberiaHandler.PostReservar)
 
+	r.Group(func(r chi.Router) {
+		// Aquí usamos el middleware que acabamos de crear en auth.go
+		r.Use(handlers.AuthMiddleware)
+
+		// Rutas protegidas
+		r.Post("/b/{slug}/servicios", serviciosHandler.CreateServicio)
+		r.Post("/b/{slug}/barberos", barberosHandler.CreateBarbero)
+	})
+
 	// --- ARCHIVOS ESTÁTICOS (CORREGIDO PARA CHI) ---
 	workDir, _ := os.Getwd()
 	filesDir := http.Dir(filepath.Join(workDir, "web"))
@@ -86,6 +95,16 @@ func main() {
 	// Servir archivos HTML específicos
 	r.Get("/handlers.html", func(w http.ResponseWriter, r *http.Request) {
 		http.ServeFile(w, r, filepath.Join(workDir, "web", "HANDLERS_VISUALIZER.html"))
+	})
+
+	// Admin dashboard demo
+	r.Get("/admin", func(w http.ResponseWriter, r *http.Request) {
+		http.ServeFile(w, r, filepath.Join(workDir, "web", "admin_dashboard.html"))
+	})
+
+	// AGREGA ESTA LÍNEA (Maneja la raíz "/")
+	r.Get("/", func(w http.ResponseWriter, r *http.Request) {
+		http.ServeFile(w, r, filepath.Join(workDir, "web", "index.html"))
 	})
 	r.Get("/index.html", func(w http.ResponseWriter, r *http.Request) {
 		http.ServeFile(w, r, filepath.Join(workDir, "web", "index.html"))

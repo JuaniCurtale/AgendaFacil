@@ -1,8 +1,8 @@
 -- name: CreateUsuario :one
 INSERT INTO usuarios (
-  barberia_id, nombre, apellido, email, password_hash, rol
+  barberia_id, username, nombre, apellido, email, password_hash, rol
 )
-VALUES ($1, $2, $3, $4, $5, $6)
+VALUES ($1, $2, $3, $4, $5, $6, $7)
 RETURNING *;
 
 -- name: GetUsuarioByEmail :one
